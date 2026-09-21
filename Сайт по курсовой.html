@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Использование случайных чисел для поиска оптимальных смешанных стратегий</title>
+    <meta name="description" content="Курсовая работа: стохастические методы поиска равновесия Нэша в матричных играх двух игроков">
+    <style>
+        /* ---------- Базовая типографика ---------- */
+        :root {
+            --accent: #2563eb;
+            --accent-dark: #1e40af;
+            --bg: #f7f8fa;
+            --text: #1a1a1a;
+            --muted: #5b6470;
+            --border: #e3e6ea;
+            --card: #ffffff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Georgia, "Times New Roman", serif;
+            line-height: 1.7;
+            color: var(--text);
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ---------- Шапка ---------- */
+        header.hero {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: #fff;
+            padding: 60px 0 50px;
+            text-align: center;
+        }
+
+        header.hero h1 {
+            font-size: 2.1em;
+            margin: 0 0 12px;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        header.hero .subtitle {
+            font-size: 1.05em;
+            opacity: 0.9;
+            font-style: italic;
+            margin: 0;
+        }
+
+        header.hero .meta {
+            margin-top: 22px;
+            font-size: 0.95em;
+            opacity: 0.85;
+        }
+
+        header.hero .meta a {
+            color: #dbeafe;
+            text-decoration: underline;
+        }
+
+        /* ---------- Основной контент ---------- */
+        main {
+            background: var(--card);
+            margin: -30px auto 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+            padding: 40px 48px;
+            max-width: 860px;
+        }
+
+        h2 {
+            font-size: 1.45em;
+            color: var(--accent-dark);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+            margin-top: 2.2em;
+            margin-bottom: 0.8em;
+        }
+
+        h2:first-of-type { margin-top: 0.4em; }
+
+        h3 {
+            font-size: 1.15em;
+            color: #374151;
+            margin-top: 1.6em;
+        }
+
+        p { margin: 0 0 1em; text-align: justify; }
+
+        /* ---------- Оглавление ---------- */
+        .toc {
+            background: #eef2ff;
+            border-left: 4px solid var(--accent);
+            border-radius: 6px;
+            padding: 18px 24px;
+            margin-bottom: 32px;
+        }
+
+        .toc h3 {
+            margin: 0 0 10px;
+            font-size: 1.05em;
+            color: var(--accent-dark);
+        }
+
+        .toc ol { margin: 0; padding-left: 20px; }
+        .toc li { margin-bottom: 4px; }
+        .toc a { color: var(--accent-dark); text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+
+        /* ---------- Рисунок с подписью ---------- */
+        figure {
+            margin: 28px 0;
+            text-align: center;
+        }
+
+        figure img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            background: #fff;
+        }
+
+        figcaption {
+            font-size: 0.9em;
+            color: var(--muted);
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        /* ---------- Таблицы ---------- */
+        .table-wrap { overflow-x: auto; margin: 20px 0; }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.95em;
+            font-family: Arial, sans-serif;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f5f9;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) td { background: #fafbfc; }
+
+        caption {
+            caption-side: bottom;
+            font-size: 0.85em;
+            color: var(--muted);
+            font-style: italic;
+            padding-top: 8px;
+            text-align: left;
+        }
+
+        /* ---------- Списки ---------- */
+        ul.features { padding-left: 22px; }
+        ul.features li { margin-bottom: 6px; }
+
+        /* ---------- Блок «выделенный фрагмент» ---------- */
+        .highlight {
+            background: #fef3c7;
+            color: #78350f;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .callout {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 14px 20px;
+            border-radius: 6px;
+            margin: 22px 0;
+            font-size: 0.95em;
+        }
+
+        /* ---------- Формулы ---------- */
+        .formula {
+            background: #f1f5f9;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-family: "Cambria Math", "Times New Roman", serif;
+            text-align: center;
+            font-size: 1.05em;
+            margin: 18px 0;
+        }
+
+        /* ---------- Блок автора / кнопки ---------- */
+        .actions {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            padding: 11px 24px;
+            border-radius: 6px;
+            font-family: Arial, sans-serif;
+            font-size: 0.95em;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: var(--accent-dark); }
+
+        .btn.secondary {
+            background: transparent;
+            color: var(--accent-dark);
+            border: 2px solid var(--accent);
+        }
+
+        .btn.secondary:hover { background: #eef2ff; }
+
+        /* ---------- Футер ---------- */
+        footer {
+            text-align: center;
+            padding: 30px 20px 50px;
+            color: var(--muted);
+            font-size: 0.88em;
+            font-family: Arial, sans-serif;
+        }
+
+        footer a { color: var(--accent); }
+
+        /* ---------- Адаптив ---------- */
+        @media (max-width: 640px) {
+            main { padding: 26px 20px; margin: -20px 12px 30px; }
+            header.hero { padding: 42px 0 38px; }
+            header.hero h1 { font-size: 1.5em; }
+            h2 { font-size: 1.25em; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============ ШАПКА ============ -->
+<header class="hero">
+    <div class="container">
+        <h1>Использование случайных чисел<br>для поиска оптимальных смешанных стратегий</h1>
+        <p class="subtitle">Курсовая работа по теории игр и численным методам оптимизации</p>
+        <p class="meta">
+            Автор: <strong>Литвин С.П.</strong> · Группа: <strong>ПМИ-21</strong><br>
+            Научный руководитель: <em>канд. физ.-мат. наук Бабунко М.В.</em> · 2026 г.
+        </p>
+    </div>
+</header>
+
+<!-- ============ ОСНОВНОЙ КОНТЕНТ ============ -->
+<main>
+
+    <!-- Оглавление -->
+    <nav class="toc">
+        <h3>Содержание</h3>
+        <ol>
+            <li><a href="#intro">Введение</a></li>
+            <li><a href="#problem">Постановка задачи</a></li>
+            <li><a href="#algorithm">Алгоритм случайного поиска</a></li>
+            <li><a href="#results">Результаты экспериментов</a></li>
+            <li><a href="#conclusion">Заключение</a></li>
+            <li><a href="#refs">Список литературы</a></li>
+        </ol>
+    </nav>
+
+    <!-- Введение -->
+    <section id="intro">
+        <h2>1. Введение</h2>
+        <p>
+            Теория игр представляет собой современный математический аппарат анализа
+            конфликтных ситуаций и занимает важное место в прикладной математике.
+            <span class="highlight">Актуальность</span> темы обусловлена ростом размерности
+            практических задач, где классические аналитические методы — симплекс-метод
+            и графический подход — становятся вычислительно затратными.
+        </p>
+        <p>
+            Цель работы — исследовать эффективность применения случайных чисел
+            для численного определения оптимальных смешанных стратегий в матричных
+            играх двух лиц с нулевой суммой.
+        </p>
+
+        <div class="callout">
+            <strong>Ключевая идея.</strong> Метод Монте-Карло позволяет находить
+            приближённое равновесие Нэша за приемлемое время даже для матриц
+            большой размерности, где детерминированные методы неприменимы.
+        </div>
+    </section>
+
+    <!-- Постановка задачи -->
+    <section id="problem">
+        <h2>2. Постановка задачи</h2>
+        <p>
+            Матричная игра двух игроков задаётся тройкой <em>(X, Y, K)</em>, где
+            <em>X = {x₁, …, x<sub>m</sub>}</em> — стратегии первого игрока,
+            <em>Y = {y₁, …, y<sub>n</sub>}</em> — стратегии второго, а
+            <em>K: X × Y → ℝ</em> — функция выигрыша. В матричной форме игра
+            описывается платёжной матрицей <em>A = (a<sub>ij</sub>)</em>.
+        </p>
+        <p>
+            Смешанные стратегии задаются векторами вероятностей
+            <em>p = (p₁, …, p<sub>m</sub>)</em> и <em>q = (q₁, …, q<sub>n</sub>)</em>,
+            лежащими в симплексах <em>S<sub>m</sub></em> и <em>S<sub>n</sub></em>.
+            Функция выигрыша в смешанном расширении:
+        </p>
+        <div class="formula">
+            H(p, q) = Σ<sub>i=1..m</sub> Σ<sub>j=1..n</sub> p<sub>i</sub> q<sub>j</sub> a<sub>ij</sub> = p<sup>T</sup> A q
+        </div>
+        <p>
+            Задача сводится к поиску седловой точки:
+        </p>
+        <div class="formula">
+            max<sub>p ∈ S<sub>m</sub></sub> min<sub>q ∈ S<sub>n</sub></sub> H(p, q) = min<sub>q ∈ S<sub>n</sub></sub> max<sub>p ∈ S<sub>m</sub></sub> H(p, q) = v
+        </div>
+    </section>
+
+    <!-- Алгоритм -->
+    <section id="algorithm">
+        <h2>3. Алгоритм случайного поиска</h2>
+        <p>
+            Предлагаемый подход основан на многократной генерации случайных
+            вероятностных векторов в симплексе стратегий. Для равномерного
+            распределения точек на симплексе используется нормирование
+            экспоненциально распределённых величин:
+        </p>
+        <div class="formula">
+            p<sub>i</sub> = ξ<sub>i</sub> / (ξ₁ + … + ξ<sub>m</sub>), &nbsp; ξ<sub>i</sub> = −ln(u<sub>i</sub>), &nbsp; u<sub>i</sub> ∈ [0, 1]
+        </div>
+
+        <h3>Основные шаги алгоритма</h3>
+        <ul class="features">
+            <li>Генерация случайной стратегии первого игрока <em>p</em> на симплексе <em>S<sub>m</sub></em>.</li>
+            <li>Вычисление вектора ожидаемых выигрышей <em>e<sub>j</sub> = Σ<sub>i</sub> p<sub>i</sub> a<sub>ij</sub></em>.</li>
+            <li>Определение гарантированного выигрыша <em>v<sub>min</sub> = min<sub>j</sub> e<sub>j</sub></em>.</li>
+            <li>Обновление лучшей стратегии <em>p*</em> и оценки <em>v* = max(v*, v<sub>min</sub>)</em>.</li>
+            <li>Аналогичные операции для стратегии <em>q</em> второго игрока.</li>
+            <li>Повтор шагов до заданного числа итераций <em>N</em>.</li>
+        </ul>
+
+        <figure>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Monte_Carlo_Integration_Convergence.svg/640px-Monte_Carlo_Integration_Convergence.svg.png"
+                 alt="Сходимость метода Монте-Карло">
+            <figcaption>
+                Рисунок 1. Типичная траектория сходимости метода Монте-Карло:
+                погрешность убывает пропорционально O(N<sup>−1/2</sup>).
+            </figcaption>
+        </figure>
+    </section>
+
+    <!-- Результаты -->
+    <section id="results">
+        <h2>4. Результаты экспериментов</h2>
+        <p>
+            Сравнительное тестирование проводилось на матричных играх размерности
+            4×4 – 20×20 с элементами из диапазона [−10, 10]. Использовались три
+            генератора псевдослучайных чисел: стандартный ЛКГ, вихрь Мерсенна
+            и субоптимальный ЛКГ.
+        </p>
+
+        <h3>Сравнение генераторов (игра 5×5)</h3>
+        <div class="table-wrap">
+            <table>
+                <caption>Таблица 1 — Эффективность генераторов при поиске равновесия</caption>
+                <thead>
+                    <tr>
+                        <th>Генератор</th>
+                        <th>Средняя точность δ</th>
+                        <th>Средн. итераций до ε = 0.01</th>
+                        <th>Коэф. вариации</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Вихрь Мерсенна</td>
+                        <td>0.0076</td>
+                        <td>16 230</td>
+                        <td>0.237</td>
+                    </tr>
+                    <tr>
+                        <td>Стандартный ЛКГ</td>
+                        <td>0.0084</td>
+                        <td>18 450</td>
+                        <td>0.250</td>
+                    </tr>
+                    <tr>
+                        <td>Субоптимальный ЛКГ</td>
+                        <td>0.0112</td>
+                        <td>24 780</td>
+                        <td>0.304</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>Апробация на задачах высокой размерности</h3>
+        <div class="table-wrap">
+            <table>
+                <caption>Таблица 2 — Результаты для игр 10×10, 15×15, 20×20</caption>
+                <thead>
+                    <tr>
+                        <th>Размерность</th>
+                        <th>N итераций</th>
+                        <th>Время, с</th>
+                        <th>Относ. погрешность, %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>10×10</td><td>200 000</td><td>4.2</td><td>0.069</td></tr>
+                    <tr><td>15×15</td><td>500 000</td><td>18.7</td><td>0.418</td></tr>
+                    <tr><td>20×20</td><td>1 000 000</td><td>56.3</td><td>0.148</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="callout">
+            <strong>Вывод.</strong> Для игр размерности более 15×15 стохастический
+            алгоритм существенно превосходит симплекс-метод по времени: для 20×20
+            он даёт решение за 56 секунд против ~8 минут у детерминированного метода.
+        </div>
+    </section>
+
+    <!-- Заключение -->
+    <section id="conclusion">
+        <h2>5. Заключение</h2>
+        <p>
+            Разработан итерационный алгоритм численного поиска оптимальных смешанных
+            стратегий, основанный на генерации случайных точек в симплексе.
+            Установлено, что использование качественного генератора (вихря Мерсенна)
+            повышает точность решения на 32% и сокращает число итераций на 34%
+            по сравнению с субоптимальным ЛКГ.
+        </p>
+        <p>
+            Практическая значимость работы определяется возможностью применения
+            алгоритма в задачах стратегического планирования, ценовой оптимизации
+            на олигополистических рынках и выбора инвестиционных портфелей.
+        </p>
+
+        <div class="actions">
+            <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
+                📄 Исходный код на GitHub
+            </a>
+            <a class="btn secondary" href="#refs">
+                📚 Литература
+            </a>
+        </div>
+    </section>
+
+    <!-- Литература -->
+    <section id="refs">
+        <h2>6. Список литературы</h2>
+        <ol>
+            <li>Петросян Л. А., Зенкевич Н. А. Теория игр. — СПб.: Лань, 2020. — 424 с.</li>
+            <li>Соболь И. М. Метод Монте-Карло. — М.: Наука, 2018. — 192 с.</li>
+            <li>Нейман Дж. фон, Моргенштерн О. Теория игр и экономическое поведение. — М.: Наука, 2021. — 708 с.</li>
+            <li>Мазалов В. В. Математическая теория игр и приложения. — СПб.: Лань, 2019. — 448 с.</li>
+            <li>Вентцель Е. С. Исследование операций: задачи, принципы, методология. — М.: Высшая школа, 2019. — 208 с.</li>
+        </ol>
+    </section>
+
+</main>
+
+<!-- ============ ФУТЕР ============ -->
+<footer>
+    <p>
+        © 2026 Литвин С.П. · Курсовая работа ·
+        Опубликовано на <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a>
+    </p>
+</footer>
+
+</body>
+</html>
